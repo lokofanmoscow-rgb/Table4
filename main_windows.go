@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
+	"time"
+	"unsafe"
 
 	"github.com/lxn/walk"
 	. "github.com/lxn/walk/declarative"
@@ -327,7 +329,7 @@ func (a *app) paintTile(t *tile, c *walk.Canvas) error {
 }
 
 func (a *app) click(t *tile) {
-	if err := walk.Clipboard().SetText(t.text); err != nil {
+	if err := copyText(a.mw.Handle(), t.text); err != nil {
 		walk.MsgBox(a.mw, appTitle, "Не удалось скопировать в буфер обмена: "+err.Error(), walk.MsgBoxIconError)
 		return
 	}
@@ -339,6 +341,50 @@ func (a *app) click(t *tile) {
 	}
 	t.w.Invalidate()
 	a.status.SetText("Скопировано в буфер обмена:  " + t.text)
+}
+
+// copyText кладёт текст в буфер обмена, предварительно очистив его.
+// walk.Clipboard().SetText не вызывает EmptyClipboard: форматы, оставшиеся от
+// прошлого копирования (RTF, HTML, данные Word), сохранялись рядом с новым
+// текстом, и Word вставлял их — то есть старое значение.
+func copyText(owner win.HWND, s string) error {
+	utf16, err := syscall.UTF16FromString(s)
+	if err != nil {
+		return err
+	}
+	size := uintptr(len(utf16) * 2)
+
+	// Буфер может быть ненадолго занят другой программой — пробуем несколько раз.
+	opened := false
+	for i := 0; i < 25 && !opened; i++ {
+		if opened = win.OpenClipboard(owner); !opened {
+			time.Sleep(20 * time.Millisecond)
+		}
+	}
+	if !opened {
+		return fmt.Errorf("буфер обмена занят другой программой (код %d)", win.GetLastError())
+	}
+	defer win.CloseClipboard()
+
+	if !win.EmptyClipboard() {
+		return fmt.Errorf("не удалось очистить буфер обмена (код %d)", win.GetLastError())
+	}
+	hMem := win.GlobalAlloc(win.GMEM_MOVEABLE, size)
+	if hMem == 0 {
+		return fmt.Errorf("не хватает памяти (код %d)", win.GetLastError())
+	}
+	p := win.GlobalLock(hMem)
+	if p == nil {
+		win.GlobalFree(hMem)
+		return fmt.Errorf("GlobalLock (код %d)", win.GetLastError())
+	}
+	win.MoveMemory(p, unsafe.Pointer(&utf16[0]), size)
+	win.GlobalUnlock(hMem)
+	if win.SetClipboardData(win.CF_UNICODETEXT, win.HANDLE(hMem)) == 0 {
+		win.GlobalFree(hMem)
+		return fmt.Errorf("не удалось записать в буфер обмена (код %d)", win.GetLastError())
+	}
+	return nil // памятью hMem теперь владеет система
 }
 
 func (a *app) reset() {
