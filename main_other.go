@@ -28,4 +28,5 @@ func main() {
 	print("ОБЩИЙ БРОМ", res.Bromine)
 	fmt.Printf("Числовых значений в таблице: %d (ячеек мг/кг и %%: %d)\n", res.NumericRows, res.NumericCells)
 	fmt.Printf("Строк со значением BL: %d из %d\n", res.BLRows, res.TotalRows)
+	fmt.Printf("Строк «Общий бром»: %d (с числовыми значениями: %d)\n", res.BromineRows, len(res.Bromine))
 }

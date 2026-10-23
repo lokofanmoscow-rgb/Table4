@@ -33,6 +33,7 @@ type Result struct {
 	NumericRows  int // строк, где есть числовое значение (по всем элементам)
 	NumericCells int // ячеек мг/кг и % с числовыми значениями
 	BLRows       int // строк с интерпретацией BL
+	BromineRows  int // всех строк «Общий бром» (с любыми значениями)
 
 	// NumericByElement — количество строк с числовыми значениями по каждому
 	// элементу, в порядке первого появления в таблице.
@@ -569,6 +570,9 @@ func ParseDocumentXML(r io.Reader) (*Result, error) {
 		res.TotalRows++
 		if strings.EqualFold(strings.TrimSpace(interp), "BL") {
 			res.BLRows++
+		}
+		if isBromine(name) {
+			res.BromineRows++
 		}
 
 		mgNum, pctNum := IsNumeric(mg), IsNumeric(pct)

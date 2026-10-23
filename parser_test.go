@@ -81,9 +81,9 @@ func TestParseTable4(t *testing.T) {
 		res.Bromine[0].Component != "2" {
 		t.Errorf("бром: %+v", res.Bromine)
 	}
-	if res.TotalRows != 7 || res.BLRows != 6 || res.NumericRows != 4 || res.NumericCells != 8 {
-		t.Errorf("статистика: всего %d, BL %d, числовых строк %d, ячеек %d",
-			res.TotalRows, res.BLRows, res.NumericRows, res.NumericCells)
+	if res.TotalRows != 7 || res.BLRows != 6 || res.NumericRows != 4 || res.NumericCells != 8 || res.BromineRows != 3 {
+		t.Errorf("статистика: всего %d, BL %d, числовых строк %d, ячеек %d, строк брома %d",
+			res.TotalRows, res.BLRows, res.NumericRows, res.NumericCells, res.BromineRows)
 	}
 }
 
@@ -130,6 +130,6 @@ func TestSampleFile(t *testing.T) {
 	for _, e := range res.Bromine {
 		t.Logf("БРОМ    №%-4s %-12s %s", e.Component, e.MgKg, e.Percent)
 	}
-	t.Logf("строк: %d, BL: %d, числовых строк: %d, числовых ячеек: %d, по элементам: %v",
-		res.TotalRows, res.BLRows, res.NumericRows, res.NumericCells, res.NumericByElement)
+	t.Logf("строк: %d, BL: %d, числовых строк: %d, числовых ячеек: %d, строк брома: %d, по элементам: %v",
+		res.TotalRows, res.BLRows, res.NumericRows, res.NumericCells, res.BromineRows, res.NumericByElement)
 }

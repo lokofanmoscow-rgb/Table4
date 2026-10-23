@@ -44,6 +44,7 @@ type app struct {
 	content   *walk.Composite
 	statNum   *walk.Label
 	statBL    *walk.Label
+	statBr    *walk.Label
 	statInfo  *walk.Label
 	status    *walk.Label
 
@@ -103,6 +104,9 @@ func main() {
 					HSpacer{},
 					Label{Text: "Строк со значением BL:"},
 					Label{AssignTo: &a.statBL, Text: "—", Font: Font{Family: "Segoe UI", PointSize: 10, Bold: true}},
+					HSpacer{},
+					Label{Text: "Строк «Общий бром»:"},
+					Label{AssignTo: &a.statBr, Text: "—", Font: Font{Family: "Segoe UI", PointSize: 10, Bold: true}},
 					HSpacer{},
 					Label{AssignTo: &a.statInfo, ColumnSpan: 3, Text: "", TextColor: colorMuted},
 				},
@@ -214,6 +218,7 @@ func (a *app) show(res *Result) {
 
 	a.statNum.SetText(fmt.Sprint(res.NumericRows))
 	a.statBL.SetText(fmt.Sprintf("%d  (всего строк с результатами: %d)", res.BLRows, res.TotalRows))
+	a.statBr.SetText(fmt.Sprintf("%d  (из них с числовыми значениями: %d)", res.BromineRows, len(res.Bromine)))
 	var parts []string
 	for _, e := range res.NumericByElement {
 		parts = append(parts, fmt.Sprintf("%s — %d", e.Name, e.Count))
